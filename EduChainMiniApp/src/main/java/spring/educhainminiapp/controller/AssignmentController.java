@@ -26,13 +26,12 @@ public class AssignmentController extends BaseController {
     }
 
     // Отправить ответ на задание
+    // Отправить ответ на задание
     @PostMapping("/{assignmentId}/submit")
     public ResponseEntity<String> submitAssignmentAnswer(@PathVariable Long assignmentId,
-                                                         @RequestParam String userAnswer,
-                                                         HttpSession session) {
-        User user = getCurrentUser(session);
-        assignmentService.submitAssignment(user.getId(), assignmentId, userAnswer);
-        return ResponseEntity.ok("Ответ успешно отправлен!");
+                                                         @RequestBody AssignmentSubmissionRequest request) {
+        assignmentService.submitAssignment(request.getSectionId(), request.getUserId(), assignmentId, request.getUserAnswer());
+        return ResponseEntity.ok("Ответ успешно отправлен! ");
     }
 }
 
