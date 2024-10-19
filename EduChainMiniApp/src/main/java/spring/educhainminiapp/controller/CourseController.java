@@ -20,6 +20,12 @@ public class CourseController extends BaseController {
         this.courseService = courseService;
     }
 
+    @PostMapping
+    public ResponseEntity<Course> createCourse(@RequestBody Course course) {
+        Course createdCourse = courseService.createCourse(course);
+        return ResponseEntity.ok(createdCourse);
+    }
+
     // Получить список всех курсов
     @GetMapping
     public ResponseEntity<List<Course>> getAllCourses(HttpSession session) {
