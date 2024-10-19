@@ -6,8 +6,7 @@ import lombok.Data;
 @Entity
 @Table(name = "sections")
 @Data
-public class Section {
-
+public class Section { // Новый
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -20,12 +19,10 @@ public class Section {
     @Column(name = "content")
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    @Column(name = "course_id", nullable = false)
+    private Long courseId;
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "assignment_id")
+    @JoinColumn(name = "assignment_id", nullable = false)
     private Assignment assignment;
 }
-
