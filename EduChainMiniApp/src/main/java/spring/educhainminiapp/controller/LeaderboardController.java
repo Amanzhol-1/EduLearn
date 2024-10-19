@@ -25,8 +25,6 @@ public class LeaderboardController extends BaseController {
     // Получить топ-10 пользователей с самым большим количеством токенов
     @GetMapping("/tokens")
     public ResponseEntity<List<UserDto>> getTopUsersByTokens(HttpSession session) {
-        // Проверяем, что пользователь авторизован
-        getCurrentUser(session);
 
         // Получаем топ-10 пользователей
         List<User> users = userRepository.findTop10ByOrderByTokensDesc();

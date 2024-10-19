@@ -23,8 +23,6 @@ public class CourseController extends BaseController {
     // Получить список всех курсов
     @GetMapping
     public ResponseEntity<List<Course>> getAllCourses(HttpSession session) {
-        // Проверяем, что пользователь авторизован
-        getCurrentUser(session);
         List<Course> courses = courseService.findAll();
         return ResponseEntity.ok(courses);
     }
@@ -32,7 +30,6 @@ public class CourseController extends BaseController {
     // Получить детали курса по ID
     @GetMapping("/{courseId}")
     public ResponseEntity<Course> getCourseDetails(@PathVariable Long courseId, HttpSession session) {
-        getCurrentUser(session);
         Course course = courseService.findById(courseId);
         return ResponseEntity.ok(course);
     }

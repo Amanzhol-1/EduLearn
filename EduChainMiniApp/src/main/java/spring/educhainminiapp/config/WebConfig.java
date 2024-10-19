@@ -18,15 +18,11 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/auth/**")
+                registry.addMapping("/**")
                         .allowedOrigins(frontendUrl)
-                        .allowedMethods("POST")
-                        .allowedHeaders("*");
-
-                registry.addMapping("/api/users/**")
-                        .allowedOrigins(frontendUrl)
-                        .allowedMethods("GET")
-                        .allowedHeaders("*");
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
             }
         };
     }
@@ -36,4 +32,5 @@ public class WebConfig {
         return new RestTemplate();
     }
 }
+
 
