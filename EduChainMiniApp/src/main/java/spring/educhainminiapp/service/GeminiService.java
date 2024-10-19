@@ -12,13 +12,13 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 
 @Service
-public class GeminiService { // all new
+public class GeminiService { 
 
     private final RestTemplate restTemplate;
 
     @Value("${gemini.api.url}")
     private String geminiApiUrl;
-    public String sessionId;
+    public String sessionId = String.valueOf(1234);
 
     public GeminiService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
@@ -63,5 +63,5 @@ public class GeminiService { // all new
             throw new RuntimeException("Failed to clear history: " + response.getStatusCode());
         }
     }
-
 }
+
