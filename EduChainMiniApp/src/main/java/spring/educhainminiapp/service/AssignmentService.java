@@ -5,7 +5,6 @@ import spring.educhainminiapp.model.*;
 import spring.educhainminiapp.repository.*;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -16,26 +15,23 @@ public class AssignmentService {
     private final LevelService levelService;
     private final UserRepository userRepository;
     private final CourseService courseService;
-    private final SectionRepository sectionRepository;
+    private final GeminiService geminiService;
 
     public AssignmentService(AssignmentRepository assignmentRepository,
                              UserAssignmentRepository userAssignmentRepository,
                              LevelService levelService,
                              UserRepository userRepository,
-                             CourseService courseService,
-                             SectionRepository sectionRepository) {
+                             CourseService courseService, GeminiService geminiService) {
         this.assignmentRepository = assignmentRepository;
         this.userAssignmentRepository = userAssignmentRepository;
         this.levelService = levelService;
         this.userRepository = userRepository;
         this.courseService = courseService;
-        this.sectionRepository = sectionRepository;
+        this.geminiService = geminiService;
     }
 
     public Assignment findBySectionId(Long sectionId) {
-        Section section = sectionRepository.findById(sectionId)
-                .orElseThrow(() -> new RuntimeException("Секция не найдена"));
-        return section.getAssignment();
+        return assignmentRepository.findBySectionId(sectionId);
     }
 
     public void submitAssignment(Long userId, Long assignmentId, String userAnswer) {
@@ -45,6 +41,8 @@ public class AssignmentService {
         Assignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new RuntimeException("Задание не найдено"));
 
+        geminiService.clearHistory(); // new
+
         // Проверяем, не было ли уже отправлено решение
         Optional<UserAssignment> existing = userAssignmentRepository.findByUserAndAssignment(user, assignment);
         if (existing.isPresent()) {
@@ -52,7 +50,13 @@ public class AssignmentService {
         }
 
         // Проверяем ответ
-        boolean isCorrect = assignment.getAnswer().equalsIgnoreCase(userAnswer.trim());
+        boolean isCorrect; // new
+        if(!assignment.getQuestion().isBlank()) {
+            isCorrect = checkCorrect(assignment.getAnswer(), userAnswer.trim());
+        }
+        else { // answer и question пустые
+            isCorrect = checkCorrect(assignment.getSection().getContent(), userAnswer.trim());
+        } //
 
         // Создаём запись о выполнении задания
         UserAssignment userAssignment = new UserAssignment();
@@ -69,13 +73,28 @@ public class AssignmentService {
             user.setTokens(user.getTokens() + assignment.getRewardTokens());
             userRepository.save(user);
 
-            // Помечаем секцию как завершённую
-            completeSection(user, assignment.getSection());
+            // Проверяем завершение всех заданий в секции
+            checkSectionCompletion(user, assignment.getSection());
         }
     }
 
-    private void completeSection(User user, Section section) {
-        if (!user.getCompletedSections().contains(section)) {
+    private boolean checkCorrect(String answer, String userAnswer) { // new
+        boolean result = false;
+        if(!answer.isBlank()){
+            String prompt = "Сравни идею текста: " + userAnswer + ". И идею этого текста:" + answer + " равны ли они , если да напиши только true иначе напиши только false";
+            result = "true".equalsIgnoreCase(geminiService.generateContent(prompt).trim());
+        }
+        return result;
+    } //
+
+    private void checkSectionCompletion(User user, Section section) {
+        Assignment assignment = assignmentRepository.findBySectionId(section.getId());
+        boolean isAssignmentCompleted = userAssignmentRepository.findByUserAndAssignment(user, assignment)
+                .map(UserAssignment::isCorrect)
+                .orElse(false);
+
+        if (isAssignmentCompleted) {
+            // Добавляем секцию в список завершённых пользователем
             user.getCompletedSections().add(section);
             userRepository.save(user);
 
@@ -84,4 +103,3 @@ public class AssignmentService {
         }
     }
 }
-
