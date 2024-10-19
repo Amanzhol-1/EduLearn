@@ -17,7 +17,16 @@ public class SectionController extends BaseController {
     public SectionController(SectionService sectionService) {
         this.sectionService = sectionService;
     }
-
+    
+    // Создать новую секцию с заданием
+    @PostMapping
+    public ResponseEntity<Section> createSection(@RequestParam Long courseId,
+                                                 @RequestParam String title,
+                                                 @RequestParam String content) {
+        Section section = sectionService.createSection(courseId, title, content);
+        return ResponseEntity.ok(section);
+    }
+    
     // Получить секции курса
     @GetMapping("/course/{courseId}")
     public ResponseEntity<List<Section>> getSectionsByCourse(@PathVariable Long courseId, HttpSession session) {
