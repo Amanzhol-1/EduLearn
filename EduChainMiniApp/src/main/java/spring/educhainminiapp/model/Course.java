@@ -8,8 +8,7 @@ import java.util.Set;
 @Entity
 @Table(name = "courses")
 @Data
-public class Course {
-
+public class Course { // Новый
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -30,8 +29,9 @@ public class Course {
     @Column(name = "reward_tokens", nullable = false)
     private int rewardTokens;
 
-    @OneToMany(mappedBy = "course")
-    private Set<Section> sections;
-
+    @ElementCollection
+    @CollectionTable(name = "course_section_ids", joinColumns = @JoinColumn(name = "course_id"))
+    @Column(name = "section_id")
+    private List<Long> sectionIds;
 }
 
