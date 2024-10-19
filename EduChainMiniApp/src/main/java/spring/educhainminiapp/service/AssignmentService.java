@@ -16,25 +16,27 @@ public class AssignmentService {
     private final UserRepository userRepository;
     private final CourseService courseService;
     private final GeminiService geminiService;
+    private final SectionService sectionService;
 
     public AssignmentService(AssignmentRepository assignmentRepository,
                              UserAssignmentRepository userAssignmentRepository,
                              LevelService levelService,
                              UserRepository userRepository,
-                             CourseService courseService, GeminiService geminiService) {
+                             CourseService courseService, GeminiService geminiService, SectionService sectionService) {
         this.assignmentRepository = assignmentRepository;
         this.userAssignmentRepository = userAssignmentRepository;
         this.levelService = levelService;
         this.userRepository = userRepository;
         this.courseService = courseService;
         this.geminiService = geminiService;
+        this.sectionService = sectionService;
     }
 
     public Assignment findBySectionId(Long sectionId) {
         return assignmentRepository.findBySectionId(sectionId);
     }
 
-    public void submitAssignment(Long userId, Long assignmentId, String userAnswer) {
+    public void submitAssignment(Long sectionId, Long userId, Long assignmentId, String userAnswer) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
@@ -55,7 +57,7 @@ public class AssignmentService {
             isCorrect = checkCorrect(assignment.getAnswer(), userAnswer.trim());
         }
         else { // answer и question пустые
-            isCorrect = checkCorrect(assignment.getSection().getContent(), userAnswer.trim());
+            isCorrect = checkCorrect(sectionService.findById(sectionId).getContent(), userAnswer.trim());
         } //
 
         // Создаём запись о выполнении задания
@@ -74,15 +76,21 @@ public class AssignmentService {
             userRepository.save(user);
 
             // Проверяем завершение всех заданий в секции
-            checkSectionCompletion(user, assignment.getSection());
+            checkSectionCompletion(user, sectionService.findById(sectionId));
         }
     }
 
     private boolean checkCorrect(String answer, String userAnswer) { // new
         boolean result = false;
+        String res = "";
         if(!answer.isBlank()){
             String prompt = "Сравни идею текста: " + userAnswer + ". И идею этого текста:" + answer + " равны ли они , если да напиши только true иначе напиши только false";
-            result = "true".equalsIgnoreCase(geminiService.generateContent(prompt).trim());
+            res = geminiService.generateContent(prompt);
+            if(res.contains("true")) {
+                result = true;
+            } else {
+                result = false;
+            }
         }
         return result;
     } //
@@ -99,7 +107,7 @@ public class AssignmentService {
             userRepository.save(user);
 
             // Проверяем завершение курса
-            courseService.checkCourseCompletion(user, section.getCourse());
+            courseService.checkCourseCompletion(user, courseService.findById(section.getCourseId()));
         }
     }
 }
