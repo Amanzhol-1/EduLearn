@@ -3,8 +3,6 @@ package spring.educhainminiapp.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.Set;
-
 @Entity
 @Table(name = "sections")
 @Data
@@ -22,10 +20,12 @@ public class Section {
     @Column(name = "content")
     private String content;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @OneToMany(mappedBy = "section")
-    private Set<Assignment> assignments;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "assignment_id")
+    private Assignment assignment;
 }
+

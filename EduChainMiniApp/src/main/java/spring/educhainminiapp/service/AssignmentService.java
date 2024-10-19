@@ -16,21 +16,26 @@ public class AssignmentService {
     private final LevelService levelService;
     private final UserRepository userRepository;
     private final CourseService courseService;
+    private final SectionRepository sectionRepository;
 
     public AssignmentService(AssignmentRepository assignmentRepository,
                              UserAssignmentRepository userAssignmentRepository,
                              LevelService levelService,
                              UserRepository userRepository,
-                             CourseService courseService) {
+                             CourseService courseService,
+                             SectionRepository sectionRepository) {
         this.assignmentRepository = assignmentRepository;
         this.userAssignmentRepository = userAssignmentRepository;
         this.levelService = levelService;
         this.userRepository = userRepository;
         this.courseService = courseService;
+        this.sectionRepository = sectionRepository;
     }
 
-    public List<Assignment> findBySectionId(Long sectionId) {
-        return assignmentRepository.findBySectionId(sectionId);
+    public Assignment findBySectionId(Long sectionId) {
+        Section section = sectionRepository.findById(sectionId)
+                .orElseThrow(() -> new RuntimeException("Секция не найдена"));
+        return section.getAssignment();
     }
 
     public void submitAssignment(Long userId, Long assignmentId, String userAnswer) {
@@ -64,21 +69,13 @@ public class AssignmentService {
             user.setTokens(user.getTokens() + assignment.getRewardTokens());
             userRepository.save(user);
 
-            // Проверяем завершение всех заданий в секции
-            checkSectionCompletion(user, assignment.getSection());
+            // Помечаем секцию как завершённую
+            completeSection(user, assignment.getSection());
         }
     }
 
-    private void checkSectionCompletion(User user, Section section) {
-        List<Assignment> assignments = assignmentRepository.findBySectionId(section.getId());
-        boolean allAssignmentsCompleted = assignments.stream().allMatch(assignment ->
-                userAssignmentRepository.findByUserAndAssignment(user, assignment)
-                        .map(UserAssignment::isCorrect)
-                        .orElse(false)
-        );
-
-        if (allAssignmentsCompleted) {
-            // Добавляем секцию в список завершённых пользователем
+    private void completeSection(User user, Section section) {
+        if (!user.getCompletedSections().contains(section)) {
             user.getCompletedSections().add(section);
             userRepository.save(user);
 
@@ -87,3 +84,4 @@ public class AssignmentService {
         }
     }
 }
+

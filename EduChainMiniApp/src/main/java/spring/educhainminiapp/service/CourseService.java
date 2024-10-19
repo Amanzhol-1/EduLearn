@@ -42,6 +42,11 @@ public class CourseService {
             throw new RuntimeException("Вы уже зарегистрированы на этот курс");
         }
 
+        // Проверяем, соответствует ли уровень пользователя требуемому уровню курса
+        if (user.getLevel() < course.getRequiredLevel()) {
+            throw new RuntimeException("Ваш уровень недостаточен для записи на этот курс");
+        }
+
         // Добавляем курс в список зарегистрированных курсов пользователя
         user.getEnrolledCourses().add(course);
         userRepository.save(user);
@@ -65,6 +70,10 @@ public class CourseService {
                 userRepository.save(user);
             }
         }
+    }
+
+    public Course createCourse(Course course) {
+        return courseRepository.save(course);
     }
 
     // Дополнительные методы
