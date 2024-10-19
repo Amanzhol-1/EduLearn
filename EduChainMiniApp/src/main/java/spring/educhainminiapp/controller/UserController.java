@@ -1,5 +1,6 @@
 package spring.educhainminiapp.controller;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +14,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/api/users")
-public class UserController {
+public class UserController extends BaseController {
 
     private final UserRepository userRepository;
     private final UserService userService;
@@ -44,6 +45,13 @@ public class UserController {
         User user = userService.getUserById(userId);
         Set<Section> completedSections = user.getCompletedSections();
         return ResponseEntity.ok(completedSections);
+    }
+
+    // Получить информацию о текущем пользователе
+    @GetMapping("/me")
+    public ResponseEntity<User> getCurrentUserInfo(HttpSession session) {
+        User user = getCurrentUser(session);
+        return ResponseEntity.ok(user);
     }
 }
 

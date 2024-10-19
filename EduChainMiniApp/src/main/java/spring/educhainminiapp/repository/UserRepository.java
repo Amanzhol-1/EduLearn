@@ -3,6 +3,8 @@ package spring.educhainminiapp.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import spring.educhainminiapp.model.User;
 
+import java.util.List;
+
 public interface UserRepository extends JpaRepository<User, Long> {
-    // Дополнительные методы поиска при необходимости
+    List<User> findTop10ByOrderByTokensDesc();
 }

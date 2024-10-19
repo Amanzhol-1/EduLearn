@@ -41,6 +41,4 @@ public class UserService {
         user.setPhotoUrl(photoUrl);
         userRepository.save(user);
     }
-
-    // Дополнительные методы для управления пользователями
 }
